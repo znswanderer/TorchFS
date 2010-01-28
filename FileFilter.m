@@ -67,7 +67,7 @@
 	
 	// if we do an initial "insert" of Spotlight results 
 	// select them in the Finder
-	if (selectFirstItem) {
+	if (selectFirstItem && (value != nil)) {
 		NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
 		[nc postNotificationName:kTSFileFilterDidInitialInsert object:self];
 	}
