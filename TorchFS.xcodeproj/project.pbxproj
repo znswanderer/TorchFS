@@ -33,6 +33,7 @@
 		16A604E310F246DE002E1624 /* CannedSavedSearchFilter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CannedSavedSearchFilter.m; sourceTree = "<group>"; };
 		16A604FA10F24849002E1624 /* UserSavedSearchFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UserSavedSearchFilter.h; sourceTree = "<group>"; };
 		16A604FB10F24849002E1624 /* UserSavedSearchFilter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UserSavedSearchFilter.m; sourceTree = "<group>"; };
+		16E3819A1111A462001397E7 /* TorchFSDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TorchFSDefines.h; sourceTree = "<group>"; };
 		1DDD58150DA1D0A300B32029 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
@@ -122,6 +123,7 @@
 			children = (
 				32CA4F630368D1EE00C91783 /* TorchFS_Prefix.pch */,
 				1627968010DBCCE3009B7B47 /* main.m */,
+				16E3819A1111A462001397E7 /* TorchFSDefines.h */,
 			);
 			name = "Other Sources";
 			sourceTree = "<group>";

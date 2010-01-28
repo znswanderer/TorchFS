@@ -70,6 +70,7 @@
 
 - (NSString*)filterName;
 - (NSString*)checkedRealPath:(NSString*)path isDir:(BOOL*)isDir;
+- (NSArray *)droppedPathComponents;
 
 
 @end

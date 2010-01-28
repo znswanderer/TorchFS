@@ -26,6 +26,8 @@
 #import "TorchFS_Controller.h"
 #import "TorchFS_Filesystem.h"
 #import <MacFUSE/MacFUSE.h>
+#import "TorchFSDefines.h"
+#import "FileFilter.h"
 
 @implementation TorchFS_Controller
 
@@ -54,12 +56,37 @@
     exit(0);
 }
 
+
+- (void)fileFilterUpdate:(NSNotification*)notification;
+{
+	FileFilter *theFilter = (FileFilter*)[notification object];
+	NSString *filterPath = [NSString pathWithComponents:[NSArray arrayWithObjects:@"/", 
+														 [theFilter filterName], 
+														 nil]];
+
+	NSError *anError = nil;
+	NSArray *contents = [theFilter contentsOfDirectoryAtPath:filterPath error:&anError];
+	if ([contents count] > 0) {
+		contents = [contents sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+		NSArray *paths = [NSArray arrayWithObjects:@"/", 
+						  @"Volumes", 
+						  [fs_delegate_ volumeName], 
+						  [theFilter filterName],
+						  [contents objectAtIndex:0],
+						  nil];
+					  
+		[[NSWorkspace sharedWorkspace] selectFile:[NSString pathWithComponents:paths] inFileViewerRootedAtPath:@""];
+	}
+}
+
 - (void)applicationDidFinishLaunching:(NSNotification *)notification 
 {
     NSNotificationCenter* center = [NSNotificationCenter defaultCenter];
     [center addObserver:self selector:@selector(mountFailed:) name:kGMUserFileSystemMountFailed object:nil];
     [center addObserver:self selector:@selector(didMount:) name:kGMUserFileSystemDidMount object:nil];
     [center addObserver:self selector:@selector(didUnmount:) name:kGMUserFileSystemDidUnmount object:nil];
+	
+	[center addObserver:self selector:@selector(fileFilterUpdate:) name:kTSFileFilterDidInitialInsert object:nil];
 
     fs_delegate_ = [[TorchFS_Filesystem alloc] init];
     fs_ = [[GMUserFileSystem alloc] initWithDelegate:fs_delegate_ isThreadSafe:YES];

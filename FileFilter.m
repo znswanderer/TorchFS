@@ -23,6 +23,7 @@
 //
 
 #import "FileFilter.h"
+#import	"TorchFSDefines.h"
 
 @implementation FileFilter
 
@@ -51,7 +52,10 @@
 }
 
 - (void)setPathContainer:(NSMutableDictionary *)value {
+	BOOL selectFirstItem = NO;
+	
     if (pathContainer_ != value) {
+		if (!pathContainer_) selectFirstItem = YES;
         [pathContainer_ release];
         pathContainer_ = [value copy];
 		
@@ -60,6 +64,21 @@
 			droppedPathComponents_ = [[self calculatePathStart:value] retain];
 		}
     }
+	
+	// if we do an initial "insert" of Spotlight results 
+	// select them in the Finder
+	if (selectFirstItem) {
+		NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+		[nc postNotificationName:kTSFileFilterDidInitialInsert object:self];
+	}
+}
+
+- (NSArray *)droppedPathComponents;
+{
+	if (droppedPathComponents_)
+		return [[droppedPathComponents_ copy] autorelease];
+	else
+		return [NSArray array];
 }
 
 - (BOOL)didStartSearch;
