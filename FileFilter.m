@@ -52,10 +52,9 @@
 }
 
 - (void)setPathContainer:(NSMutableDictionary *)value {
-	BOOL selectFirstItem = NO;
+	BOOL selectFirstItem = (value != nil) && (pathContainer_ == nil);
 	
     if (pathContainer_ != value) {
-		if (!pathContainer_) selectFirstItem = YES;
         [pathContainer_ release];
         pathContainer_ = [value copy];
 		
@@ -67,7 +66,7 @@
 	
 	// if we do an initial "insert" of Spotlight results 
 	// select them in the Finder
-	if (selectFirstItem && (value != nil)) {
+	if (selectFirstItem) {
 		NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
 		[nc postNotificationName:kTSFileFilterDidInitialInsert object:self];
 	}
@@ -134,14 +133,13 @@
 
 // A timeout will tell this FileFilter if the query is not needed any more
 // as the user did not use this specific filter for some time.
-#define QUERYSLEEPTIME 300.0		// after this time (in seconds) the query will stop 
 - (void)resetTimer;
 {
 	if (queryStopTimer_) {
 		if ([queryStopTimer_ isValid]) [queryStopTimer_ invalidate];
 		[queryStopTimer_ release];
 	}
-	queryStopTimer_ = [NSTimer scheduledTimerWithTimeInterval:QUERYSLEEPTIME target:self selector:@selector(timerStopQuery:) userInfo:nil repeats:NO];
+	queryStopTimer_ = [NSTimer scheduledTimerWithTimeInterval:kTSQuerySleeptime target:self selector:@selector(timerStopQuery:) userInfo:nil repeats:NO];
 	// the documentation is not clear (?) if the runloop retains the time,
 	// so for safety we retain it. (very likely this is unnecessary)
 	[queryStopTimer_ retain];  
@@ -224,7 +222,6 @@
 }
 
 
-#define GRANUM 5000
 - (void)gatherData:(NSNotification *)notification
 {
 	MDQueryDisableUpdates(query_);
@@ -240,7 +237,7 @@
     NSLog(@"found: %d", itemCount);
 	
     for (i=0; i<itemCount; i++) {
-        if ((i+1)%GRANUM == 0) {
+        if ((i+1)%kTSCommitAmount == 0) {
             NSLog(@"commit: %d", i);
 			[self setPathContainer:dir0];
         }
@@ -298,7 +295,7 @@
 
 - (BOOL)isResourcePath:(NSString*)path;
 {
-    if ([[path lastPathComponent] hasPrefix:@"._"])
+    if ([[path lastPathComponent] hasPrefix:@"._"] || [[path lastPathComponent] isEqualToString:@".DS_Store"])
         return YES;
     else 
         return NO;
@@ -365,20 +362,37 @@
 // (http://www.mikeash.com/?page=pyblog/friday-qa-2008-12-26.html )
 - (NSString*)checkedRealPath:(NSString*)path isDir:(BOOL*)isDir;
 {
-    if ([self pathContainer] == nil) return nil;
-    
+	// After the initial "upload" of the first query results
+	// the Finder might keep these results in memory even after
+	// we cleared this filter with "stopSearch:".
+	// So the Finder might ask for attributes and so on of results
+	// from the last query. It is just a short time and the Finder
+	// will eventually notice that these files are not around
+	// any more, but we have to deal with this anyway. Otherwise
+	// the Finder will show dead files for these and you will 
+	// get a "spinning wheel" if you want to access file properties.
+	//
+	// So to solve this situation we will keep track of the last
+	// dropped path (such that we can find these old results on
+	// the hard drive) and just give back attributes of files from
+	// the last result set if the Finder asks for it.
+	// Therfore this method will give back a "checkedRealPath"
+	// even if we do not longer have a pathContainer.
+	
+	if (droppedPathComponents_ == nil) {
+		// Only before the very first search droppedPathComponents_ is nil
+		// But this is no problem as there are no old search results
+		// from a previous search that the Finder might ask for.
+		return nil;
+	}
+	
     NSString *realPath = [self realPath:path];
     if ([self isResourcePath:realPath]) {
         return nil;
     }
 	
-	if (listPathInDir(realPath, [self pathContainer]) == nil) {
-		// this happens if it's been asked for icons, resources etc...
-		// just ignore it
-		return nil;
-	}
 	if (![[NSFileManager defaultManager] fileExistsAtPath:realPath isDirectory:isDir]) return nil;
-	
+
 	return realPath;
 }
 
