@@ -30,6 +30,10 @@
     if (self != nil) {
         fileFilters_ = [[NSMutableDictionary alloc] init];
 		[self setupFilters];
+		
+		// subscribe to NSWorkspace for wake up events
+		NSNotificationCenter *wsnc = [[NSWorkspace sharedWorkspace] notificationCenter];
+		[wsnc addObserver:self selector:@selector(workspaceDidWakeUp:) name:NSWorkspaceDidWakeNotification object:nil];
     }
     return self;
 }
@@ -39,7 +43,23 @@
 	[fileFilters_ release];
 	fileFilters_ = nil;
 	
+	[[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
+
+	
 	[super dealloc];
+}
+
+- (void)workspaceDidWakeUp:(NSNotification *)notification;
+{
+	NSLog(@"voiding all queries");
+	
+	NSArray *allFilters = [fileFilters_ allValues];
+	
+	NSUInteger i, count = [allFilters count];
+	for (i = 0; i < count; i++) {
+		FileFilter *aFilter = (FileFilter*)[allFilters objectAtIndex:i];
+		[aFilter stopSearch];
+	}
 }
 
 

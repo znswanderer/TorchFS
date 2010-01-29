@@ -24,6 +24,7 @@
 @interface FilterManager : NSObject {
     NSMutableDictionary *fileFilters_;
 }
+- (void)workspaceDidWakeUp:(NSNotification *)notification;
 
 -(NSArray*)topLevelDirectories;
 -(FileFilter*)fileFilterForPath:(NSString*)path shouldStartSearch:(BOOL)startSearch;

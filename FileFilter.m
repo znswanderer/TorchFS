@@ -113,8 +113,8 @@
 
 - (void)stopSearch;
 {
-	NSLog(@"stopping search for %@", [self filterName]);
     if (query_) {
+		NSLog(@"stopping search for %@", [self filterName]);
 		MDQueryDisableUpdates(query_);
         [[NSNotificationCenter defaultCenter] removeObserver:self];
 		MDQueryStop(query_);
