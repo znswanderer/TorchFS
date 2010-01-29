@@ -58,6 +58,8 @@
 - (void)stopSearch;
 - (void)resetTimer;
 - (void)timerStopQuery:(NSTimer*)theTimer;
+- (BOOL)queryDidNotRunBefore;
+
 
 - (NSArray *)contentsOfDirectoryAtPath:(NSString *)path error:(NSError **)error;
 - (NSDictionary *)attributesOfItemAtPath:(NSString *)path userData:(id)userData error:(NSError **)error;

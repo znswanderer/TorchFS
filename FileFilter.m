@@ -351,6 +351,12 @@
 	return dir;
 }
 
+- (BOOL)queryDidNotRunBefore;
+{
+	// Only before the very first search droppedPathComponents_ is nil
+	return (droppedPathComponents_ == nil);
+}
+
 // helper method:
 // Return the real location of path on the hard drive
 // Return nil if (for various reasons) there is no real path
@@ -379,10 +385,9 @@
 	// Therfore this method will give back a "checkedRealPath"
 	// even if we do not longer have a pathContainer.
 	
-	if (droppedPathComponents_ == nil) {
-		// Only before the very first search droppedPathComponents_ is nil
-		// But this is no problem as there are no old search results
-		// from a previous search that the Finder might ask for.
+	// This is no problem as there are no old search results
+	// from a previous search that the Finder might ask for.
+	if ([self queryDidNotRunBefore]) {
 		return nil;
 	}
 	
