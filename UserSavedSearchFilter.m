@@ -24,7 +24,7 @@
 
 +(void)setupFiltersWithFilterManager:(FilterManager*)theManager;
 {
-	NSString *file;
+    NSString *file;
     NSString *docsDir = [NSString pathWithComponents:[NSArray arrayWithObjects:NSHomeDirectory(), @"Library/Saved Searches", nil]];
     NSDirectoryEnumerator *dirEnum = [[NSFileManager defaultManager] enumeratorAtPath:docsDir];
     FileFilter *aFilter;
@@ -32,7 +32,7 @@
     while (file = [dirEnum nextObject]) {
         if ([[file pathExtension] isEqualToString: @"savedSearch"]) {
             NSLog(@"Adding %@", file);
-			
+            
             aFilter = [[self alloc] initWithPath:[NSString stringWithFormat:@"%@/%@", docsDir, file]];
             [theManager addFilter:aFilter];
             [aFilter release];
@@ -45,9 +45,9 @@
     self = [super init];
     if (self != nil) {
         filterName_ = [[[[NSFileManager defaultManager] displayNameAtPath:path] stringByDeletingPathExtension] retain];
-		
-		savedSearch_ = [NSDictionary dictionaryWithContentsOfFile:path];
-		[savedSearch_ retain];
+        
+        savedSearch_ = [NSDictionary dictionaryWithContentsOfFile:path];
+        [savedSearch_ retain];
     }
     return self;
 }

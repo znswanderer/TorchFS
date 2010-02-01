@@ -25,7 +25,7 @@
 
 +(void)setupFiltersWithFilterManager:(FilterManager*)theManager;
 {
-	NSString *file;
+    NSString *file;
     NSString *docsDir = @"/System/Library/CoreServices/Finder.app/Contents/Resources/CannedSearches";
     NSDirectoryEnumerator *dirEnum = [[NSFileManager defaultManager] enumeratorAtPath:docsDir];
     FileFilter *aFilter;
@@ -35,7 +35,7 @@
             continue;   // this CannedSearch is broken under OS X 10.6.2
         if ([[file pathExtension] isEqualToString: @"cannedSearch"]) {
             NSLog(@"Adding %@", file);
-			
+            
             aFilter = [[self alloc] initWithPath:[NSString stringWithFormat:@"%@/%@", docsDir, file]];
             [theManager addFilter:aFilter];
             [aFilter release];
@@ -48,9 +48,9 @@
     self = [super init];
     if (self != nil) {
         filterName_ = [[[[NSFileManager defaultManager] displayNameAtPath:pathForCannedSearch] stringByDeletingPathExtension] retain];
-		
-		savedSearch_ = [NSDictionary dictionaryWithContentsOfFile:[NSString stringWithFormat:@"%@/search.savedSearch", pathForCannedSearch]];
-		[savedSearch_ retain];
+        
+        savedSearch_ = [NSDictionary dictionaryWithContentsOfFile:[NSString stringWithFormat:@"%@/search.savedSearch", pathForCannedSearch]];
+        [savedSearch_ retain];
     }
     return self;
 }

@@ -21,6 +21,6 @@
 #define kTSFileFilterDidInitialInsert @"kTSFileFilterDidInitialInsert"
 
 
-#define kTSCommitAmount 5000		// the granularity of query results in first insert
-#define kTSQuerySleeptime 300.0		// after this time (in seconds) the query will stop 
+#define kTSCommitAmount 5000        // the granularity of query results in first insert
+#define kTSQuerySleeptime 300.0     // after this time (in seconds) the query will stop 
 

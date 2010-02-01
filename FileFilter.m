@@ -23,27 +23,27 @@
 //
 
 #import "FileFilter.h"
-#import	"TorchFSDefines.h"
+#import "TorchFSDefines.h"
 
 @implementation FileFilter
 
 +(void)setupFiltersWithFilterManager:(FilterManager*)theManager;
-{	
-	// defined by concrete subclasses
+{   
+    // defined by concrete subclasses
 }
 
 
 
 -(void)dealloc
 {
-	[self stopSearch];
-	
+    [self stopSearch];
+    
     droppedPathComponents_ = nil;
-	[filterName_ release];
+    [filterName_ release];
     filterName_ = nil;
-	[savedSearch_ release];
-	savedSearch_ = nil;
-	
+    [savedSearch_ release];
+    savedSearch_ = nil;
+    
     [super dealloc];
 }
 
@@ -52,32 +52,32 @@
 }
 
 - (void)setPathContainer:(NSMutableDictionary *)value {
-	BOOL selectFirstItem = (value != nil) && (pathContainer_ == nil);
-	
+    BOOL selectFirstItem = (value != nil) && (pathContainer_ == nil);
+    
     if (pathContainer_ != value) {
         [pathContainer_ release];
         pathContainer_ = [value copy];
-		
-		if (value != nil) {
-			[droppedPathComponents_ release];
-			droppedPathComponents_ = [[self calculatePathStart:value] retain];
-		}
+        
+        if (value != nil) {
+            [droppedPathComponents_ release];
+            droppedPathComponents_ = [[self calculatePathStart:value] retain];
+        }
     }
-	
-	// if we do an initial "insert" of Spotlight results 
-	// select them in the Finder
-	if (selectFirstItem) {
-		NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
-		[nc postNotificationName:kTSFileFilterDidInitialInsert object:self];
-	}
+    
+    // if we do an initial "insert" of Spotlight results 
+    // select them in the Finder
+    if (selectFirstItem) {
+        NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+        [nc postNotificationName:kTSFileFilterDidInitialInsert object:self];
+    }
 }
 
 - (NSArray *)droppedPathComponents;
 {
-	if (droppedPathComponents_)
-		return [[droppedPathComponents_ copy] autorelease];
-	else
-		return [NSArray array];
+    if (droppedPathComponents_)
+        return [[droppedPathComponents_ copy] autorelease];
+    else
+        return [NSArray array];
 }
 
 - (BOOL)didStartSearch;
@@ -95,116 +95,116 @@
         CFRelease(query_);
         query_ = NULL;
     }
-	
-	NSString *queryString = [savedSearch_ objectForKey:@"RawQuery"];
+    
+    NSString *queryString = [savedSearch_ objectForKey:@"RawQuery"];
     query_ = MDQueryCreate(kCFAllocatorDefault, (CFStringRef)queryString, NULL, NULL);
     if (query_){
-		NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+        NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
         [nc addObserver:self selector:@selector(gatherData:) name:(NSString*)kMDQueryDidFinishNotification object:(id)query_];
-		[nc addObserver:self selector:@selector(liveUpdateData:) name:(NSString*)kMDQueryDidUpdateNotification object:(id)query_];									
-		
-		MDQuerySetSearchScope(query_, (CFArrayRef)[NSArray arrayWithObject:(id)kMDQueryScopeHome], 0);
-		MDQueryExecute(query_, kMDQueryWantsUpdates);
-		NSLog(@"Started search for filter \"%@\"", [self filterName]);
+        [nc addObserver:self selector:@selector(liveUpdateData:) name:(NSString*)kMDQueryDidUpdateNotification object:(id)query_];                                  
+        
+        MDQuerySetSearchScope(query_, (CFArrayRef)[NSArray arrayWithObject:(id)kMDQueryScopeHome], 0);
+        MDQueryExecute(query_, kMDQueryWantsUpdates);
+        NSLog(@"Started search for filter \"%@\"", [self filterName]);
     } else {
-		NSLog(@"Could not create MDQuery for filter \"%@\"", [self filterName]);
-	}
+        NSLog(@"Could not create MDQuery for filter \"%@\"", [self filterName]);
+    }
 }
 
 - (void)stopSearch;
 {
     if (query_) {
-		NSLog(@"stopping search for %@", [self filterName]);
-		MDQueryDisableUpdates(query_);
+        NSLog(@"stopping search for %@", [self filterName]);
+        MDQueryDisableUpdates(query_);
         [[NSNotificationCenter defaultCenter] removeObserver:self];
-		MDQueryStop(query_);
-		
+        MDQueryStop(query_);
+        
         CFRelease(query_);
         query_ = NULL;
     } 
-	didStartSearch_ = NO;
+    didStartSearch_ = NO;
 
-	[self setPathContainer:nil];
-	
-	if ([queryStopTimer_ isValid]) [queryStopTimer_ invalidate];
-	[queryStopTimer_ release];
-	queryStopTimer_ = nil;
+    [self setPathContainer:nil];
+    
+    if ([queryStopTimer_ isValid]) [queryStopTimer_ invalidate];
+    [queryStopTimer_ release];
+    queryStopTimer_ = nil;
 }
 
 // A timeout will tell this FileFilter if the query is not needed any more
 // as the user did not use this specific filter for some time.
 - (void)resetTimer;
 {
-	if (queryStopTimer_) {
-		if ([queryStopTimer_ isValid]) [queryStopTimer_ invalidate];
-		[queryStopTimer_ release];
-	}
-	queryStopTimer_ = [NSTimer scheduledTimerWithTimeInterval:kTSQuerySleeptime target:self selector:@selector(timerStopQuery:) userInfo:nil repeats:NO];
-	// the documentation is not clear (?) if the runloop retains the time,
-	// so for safety we retain it. (very likely this is unnecessary)
-	[queryStopTimer_ retain];  
+    if (queryStopTimer_) {
+        if ([queryStopTimer_ isValid]) [queryStopTimer_ invalidate];
+        [queryStopTimer_ release];
+    }
+    queryStopTimer_ = [NSTimer scheduledTimerWithTimeInterval:kTSQuerySleeptime target:self selector:@selector(timerStopQuery:) userInfo:nil repeats:NO];
+    // the documentation is not clear (?) if the runloop retains the time,
+    // so for safety we retain it. (very likely this is unnecessary)
+    [queryStopTimer_ retain];  
 }
 
 - (void)timerStopQuery:(NSTimer*)theTimer;
 {
-	[self performSelectorOnMainThread:@selector(stopSearch) withObject:nil waitUntilDone:NO];
+    [self performSelectorOnMainThread:@selector(stopSearch) withObject:nil waitUntilDone:NO];
 }
 
 - (void)liveUpdateData:(NSNotification *)aNotification;
 {
-	MDQueryDisableUpdates(query_);
-	
-	NSDictionary *argDict = [[aNotification userInfo] copy];
-	[self performSelectorOnMainThread:@selector(adjustPathContainer:) withObject:argDict waitUntilDone:NO];
-	[argDict release];
-	
-	MDQueryEnableUpdates(query_);
+    MDQueryDisableUpdates(query_);
+    
+    NSDictionary *argDict = [[aNotification userInfo] copy];
+    [self performSelectorOnMainThread:@selector(adjustPathContainer:) withObject:argDict waitUntilDone:NO];
+    [argDict release];
+    
+    MDQueryEnableUpdates(query_);
 }
 
 - (void)adjustPathContainer:(NSDictionary*)argDict;
 {
     if (!query_) {
         NSLog(@"%@ adjustPathContainer:%@, trying to update without query",
-			  [self filterName], argDict);
+              [self filterName], argDict);
         return;
     }
-	
-	MDQueryDisableUpdates(query_);
-	NSMutableDictionary *dir0 = [self pathContainer];
-	
-	// Add new items from addedItems and changedItems.
-	// We have to start with an empty array and not the result of 
-	// [argDict objectForKey:(NSString*)kMDQueryUpdateAddedItems] because this 
-	// might be nil and then in the following step we would not be able to add 
-	// [argDict objectForKey:(NSString*)kMDQueryUpdateChangedItems] to nil.
-	NSArray *addedItems = [NSArray array];
-	addedItems = [addedItems arrayByAddingObjectsFromArray:[argDict objectForKey:(NSString*)kMDQueryUpdateAddedItems]];
-	addedItems = [addedItems arrayByAddingObjectsFromArray:[argDict objectForKey:(NSString*)kMDQueryUpdateChangedItems]];
+    
+    MDQueryDisableUpdates(query_);
+    NSMutableDictionary *dir0 = [self pathContainer];
+    
+    // Add new items from addedItems and changedItems.
+    // We have to start with an empty array and not the result of 
+    // [argDict objectForKey:(NSString*)kMDQueryUpdateAddedItems] because this 
+    // might be nil and then in the following step we would not be able to add 
+    // [argDict objectForKey:(NSString*)kMDQueryUpdateChangedItems] to nil.
+    NSArray *addedItems = [NSArray array];
+    addedItems = [addedItems arrayByAddingObjectsFromArray:[argDict objectForKey:(NSString*)kMDQueryUpdateAddedItems]];
+    addedItems = [addedItems arrayByAddingObjectsFromArray:[argDict objectForKey:(NSString*)kMDQueryUpdateChangedItems]];
 
-	NSUInteger i, count = [addedItems count];
-	for (i = 0; i < count; i++) {
-		MDItemRef addedItem = (MDItemRef)[addedItems objectAtIndex:i];
-		NSString *path = (NSString*)MDItemCopyAttribute(addedItem, kMDItemPath);
-		if (path) {
-			addPathToDir(path, dir0);
-			[path release];
-		} 
-	}
-	
-	// remove items...
-	NSArray *removedItems = [argDict objectForKey:(NSString*)kMDQueryUpdateRemovedItems];
-	count = [removedItems count];
-	for (i = 0; i < count; i++) {
-		MDItemRef removedItem = (MDItemRef)[removedItems objectAtIndex:i];
-		NSString *path = (NSString*)MDItemCopyAttribute(removedItem, kMDItemPath);
-		if (path) {
-			removePathFromDir(path, dir0);
-			[path release];
-		} 
-	}
-	
-	MDQueryEnableUpdates(query_);
-	[self setPathContainer:dir0];
+    NSUInteger i, count = [addedItems count];
+    for (i = 0; i < count; i++) {
+        MDItemRef addedItem = (MDItemRef)[addedItems objectAtIndex:i];
+        NSString *path = (NSString*)MDItemCopyAttribute(addedItem, kMDItemPath);
+        if (path) {
+            addPathToDir(path, dir0);
+            [path release];
+        } 
+    }
+    
+    // remove items...
+    NSArray *removedItems = [argDict objectForKey:(NSString*)kMDQueryUpdateRemovedItems];
+    count = [removedItems count];
+    for (i = 0; i < count; i++) {
+        MDItemRef removedItem = (MDItemRef)[removedItems objectAtIndex:i];
+        NSString *path = (NSString*)MDItemCopyAttribute(removedItem, kMDItemPath);
+        if (path) {
+            removePathFromDir(path, dir0);
+            [path release];
+        } 
+    }
+    
+    MDQueryEnableUpdates(query_);
+    [self setPathContainer:dir0];
 }
 
 - (void)removeFromPathContainer:(NSString*)path;
@@ -212,7 +212,7 @@
     if (path) {
         NSMutableDictionary *dir0 = [self pathContainer];
         removePathFromDir(path, dir0);
-       	[self setPathContainer:dir0];
+        [self setPathContainer:dir0];
     }
 }
 
@@ -224,37 +224,37 @@
 
 - (void)gatherData:(NSNotification *)notification
 {
-	MDQueryDisableUpdates(query_);
-	
+    MDQueryDisableUpdates(query_);
+    
     NSLog(@"Search finished for filter \"%@\"", [self filterName]);
     
     NSMutableDictionary *dir0 = getRoot();
     
     MDItemRef item;
     NSString *path;
-	long i;
-	long itemCount = MDQueryGetResultCount(query_);
+    long i;
+    long itemCount = MDQueryGetResultCount(query_);
     NSLog(@"found: %d", itemCount);
-	
+    
     for (i=0; i<itemCount; i++) {
         if ((i+1)%kTSCommitAmount == 0) {
             NSLog(@"commit: %d", i);
-			[self setPathContainer:dir0];
+            [self setPathContainer:dir0];
         }
-		item = (MDItemRef)MDQueryGetResultAtIndex(query_, i);
+        item = (MDItemRef)MDQueryGetResultAtIndex(query_, i);
         path = (NSString*)MDItemCopyAttribute(item, kMDItemPath);
         if (path != NULL) {
-			// it can happen that MDQuery retrieves NULL paths
-			// if it happens, just ignore it
+            // it can happen that MDQuery retrieves NULL paths
+            // if it happens, just ignore it
             addPathToDir(path, dir0);
             [path release];
         }
-	}
+    }
     
     [self setPathContainer:dir0];
     
-	MDQueryEnableUpdates(query_);
-	[self performSelectorOnMainThread:@selector(resetTimer) withObject:nil waitUntilDone:NO];
+    MDQueryEnableUpdates(query_);
+    [self performSelectorOnMainThread:@selector(resetTimer) withObject:nil waitUntilDone:NO];
 }
 
 // get the beginning of the "interesting" directories.
@@ -267,16 +267,16 @@
 {
     NSMutableArray *droppedComponents = [[NSMutableArray alloc] init];
     [droppedComponents addObject:@"/"];
-	
+    
     NSArray *contents = listPathInDir(@"/", dir);
     while ([contents count] == 1) {
         [droppedComponents addObject:[contents objectAtIndex:0]];
-		NSString *droppedpath = [NSString pathWithComponents:droppedComponents];
-		if ([droppedpath isEqualToString:NSHomeDirectory()]) break;
+        NSString *droppedpath = [NSString pathWithComponents:droppedComponents];
+        if ([droppedpath isEqualToString:NSHomeDirectory()]) break;
         contents = listPathInDir(droppedpath, dir);
     }
-	
-	return [droppedComponents autorelease];
+    
+    return [droppedComponents autorelease];
 }
 
 // get the real location on the filesystem where the path 
@@ -319,42 +319,42 @@
 {
     if ([self pathContainer] == nil) return [NSArray arrayWithObject:NSLocalizedString(@"Please wait!",)];
     
-	NSString *realPath = [self realPath:path];
-	NSArray *dir = listPathInDir(realPath, [self pathContainer]);
-	
-	// get the content of the physical representation
-	// and compare it to the stored files in the pathContainer
-	// (the contents of the path in the path container must be a subset
-	//  of the contents of the real path)
-	NSError *someError = nil;
-	NSArray *realContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:realPath error:&someError];
-	if (realContents) {
-		NSSet *realSet = [NSSet setWithArray:realContents];
-		NSMutableSet *torchSet = [NSMutableSet setWithArray:dir];
-		
-		[torchSet minusSet:realSet];
-		// get rid of the surplus files in the path container...
-		if ([torchSet count] != 0) {			
-			NSArray *missingPaths = [torchSet allObjects];
-			NSUInteger i, count = [missingPaths count];
-			for (i = 0; i < count; i++) {
-				NSString *fileName = (NSString*)[missingPaths objectAtIndex:i];
-				[self performSelectorOnMainThread:@selector(removeFromPathContainer:) withObject:[realPath stringByAppendingPathComponent:fileName] waitUntilDone:NO];
-			}
-		}
-	} else {
-		NSLog(@"FileFilter \"%@\": error at contentsOfDirectoryAtPath: %@\nerror: %@",
-			  [self filterName], path, someError);
-		return nil;
-	}
-	
-	return dir;
+    NSString *realPath = [self realPath:path];
+    NSArray *dir = listPathInDir(realPath, [self pathContainer]);
+    
+    // get the content of the physical representation
+    // and compare it to the stored files in the pathContainer
+    // (the contents of the path in the path container must be a subset
+    //  of the contents of the real path)
+    NSError *someError = nil;
+    NSArray *realContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:realPath error:&someError];
+    if (realContents) {
+        NSSet *realSet = [NSSet setWithArray:realContents];
+        NSMutableSet *torchSet = [NSMutableSet setWithArray:dir];
+        
+        [torchSet minusSet:realSet];
+        // get rid of the surplus files in the path container...
+        if ([torchSet count] != 0) {            
+            NSArray *missingPaths = [torchSet allObjects];
+            NSUInteger i, count = [missingPaths count];
+            for (i = 0; i < count; i++) {
+                NSString *fileName = (NSString*)[missingPaths objectAtIndex:i];
+                [self performSelectorOnMainThread:@selector(removeFromPathContainer:) withObject:[realPath stringByAppendingPathComponent:fileName] waitUntilDone:NO];
+            }
+        }
+    } else {
+        NSLog(@"FileFilter \"%@\": error at contentsOfDirectoryAtPath: %@\nerror: %@",
+              [self filterName], path, someError);
+        return nil;
+    }
+    
+    return dir;
 }
 
 - (BOOL)queryDidNotRunBefore;
 {
-	// Only before the very first search droppedPathComponents_ is nil
-	return (droppedPathComponents_ == nil);
+    // Only before the very first search droppedPathComponents_ is nil
+    return (droppedPathComponents_ == nil);
 }
 
 // helper method:
@@ -368,62 +368,62 @@
 // (http://www.mikeash.com/?page=pyblog/friday-qa-2008-12-26.html )
 - (NSString*)checkedRealPath:(NSString*)path isDir:(BOOL*)isDir;
 {
-	// After the initial "upload" of the first query results
-	// the Finder might keep these results in memory even after
-	// we cleared this filter with "stopSearch:".
-	// So the Finder might ask for attributes and so on of results
-	// from the last query. It is just a short time and the Finder
-	// will eventually notice that these files are not around
-	// any more, but we have to deal with this anyway. Otherwise
-	// the Finder will show dead files for these and you will 
-	// get a "spinning wheel" if you want to access file properties.
-	//
-	// So to solve this situation we will keep track of the last
-	// dropped path (such that we can find these old results on
-	// the hard drive) and just give back attributes of files from
-	// the last result set if the Finder asks for it.
-	// Therfore this method will give back a "checkedRealPath"
-	// even if we do not longer have a pathContainer.
-	
-	// This is no problem as there are no old search results
-	// from a previous search that the Finder might ask for.
-	if ([self queryDidNotRunBefore]) {
-		return nil;
-	}
-	
+    // After the initial "upload" of the first query results
+    // the Finder might keep these results in memory even after
+    // we cleared this filter with "stopSearch:".
+    // So the Finder might ask for attributes and so on of results
+    // from the last query. It is just a short time and the Finder
+    // will eventually notice that these files are not around
+    // any more, but we have to deal with this anyway. Otherwise
+    // the Finder will show dead files for these and you will 
+    // get a "spinning wheel" if you want to access file properties.
+    //
+    // So to solve this situation we will keep track of the last
+    // dropped path (such that we can find these old results on
+    // the hard drive) and just give back attributes of files from
+    // the last result set if the Finder asks for it.
+    // Therfore this method will give back a "checkedRealPath"
+    // even if we do not longer have a pathContainer.
+    
+    // This is no problem as there are no old search results
+    // from a previous search that the Finder might ask for.
+    if ([self queryDidNotRunBefore]) {
+        return nil;
+    }
+    
     NSString *realPath = [self realPath:path];
     if ([self isResourcePath:realPath]) {
         return nil;
     }
-	
-	if (![[NSFileManager defaultManager] fileExistsAtPath:realPath isDirectory:isDir]) return nil;
+    
+    if (![[NSFileManager defaultManager] fileExistsAtPath:realPath isDirectory:isDir]) return nil;
 
-	return realPath;
+    return realPath;
 }
 
 - (NSDictionary *)attributesOfItemAtPath:(NSString *)path userData:(id)userData error:(NSError **)error 
 {
-	BOOL isDir;
-	NSString *realPath = [self checkedRealPath:path isDir:&isDir];
-	if (realPath == nil) return nil;
+    BOOL isDir;
+    NSString *realPath = [self checkedRealPath:path isDir:&isDir];
+    if (realPath == nil) return nil;
     
-	NSMutableDictionary *res = [[[[NSFileManager defaultManager] attributesOfItemAtPath:realPath error:error] mutableCopy] autorelease];
+    NSMutableDictionary *res = [[[[NSFileManager defaultManager] attributesOfItemAtPath:realPath error:error] mutableCopy] autorelease];
     if (!res) res = [[[NSMutableDictionary dictionary] retain] autorelease];
-	if (!isDir || [[NSWorkspace sharedWorkspace] isFilePackageAtPath:realPath]) 
-			[res setObject:NSFileTypeSymbolicLink forKey:NSFileType];
-	
-	return res;
+    if (!isDir || [[NSWorkspace sharedWorkspace] isFilePackageAtPath:realPath]) 
+            [res setObject:NSFileTypeSymbolicLink forKey:NSFileType];
+    
+    return res;
 }
 
 - (NSString *)destinationOfSymbolicLinkAtPath:(NSString *)path error:(NSError **)error;
 {
-	BOOL isDir;
-	NSString *realPath = [self checkedRealPath:path isDir:&isDir];
-	if (realPath == nil) return nil;
+    BOOL isDir;
+    NSString *realPath = [self checkedRealPath:path isDir:&isDir];
+    if (realPath == nil) return nil;
 
-	if (isDir && ![[NSWorkspace sharedWorkspace] isFilePackageAtPath:realPath]) return nil;
+    if (isDir && ![[NSWorkspace sharedWorkspace] isFilePackageAtPath:realPath]) return nil;
     
-	return realPath;
+    return realPath;
 }
 
 @end

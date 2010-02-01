@@ -29,37 +29,37 @@
     self = [super init];
     if (self != nil) {
         fileFilters_ = [[NSMutableDictionary alloc] init];
-		[self setupFilters];
-		
-		// subscribe to NSWorkspace for wake up events
-		NSNotificationCenter *wsnc = [[NSWorkspace sharedWorkspace] notificationCenter];
-		[wsnc addObserver:self selector:@selector(workspaceDidWakeUp:) name:NSWorkspaceDidWakeNotification object:nil];
+        [self setupFilters];
+        
+        // subscribe to NSWorkspace for wake up events
+        NSNotificationCenter *wsnc = [[NSWorkspace sharedWorkspace] notificationCenter];
+        [wsnc addObserver:self selector:@selector(workspaceDidWakeUp:) name:NSWorkspaceDidWakeNotification object:nil];
     }
     return self;
 }
 
 - (void) dealloc
 {
-	[fileFilters_ release];
-	fileFilters_ = nil;
-	
-	[[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
+    [fileFilters_ release];
+    fileFilters_ = nil;
+    
+    [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
 
-	
-	[super dealloc];
+    
+    [super dealloc];
 }
 
 - (void)workspaceDidWakeUp:(NSNotification *)notification;
 {
-	NSLog(@"voiding all queries");
-	
-	NSArray *allFilters = [fileFilters_ allValues];
-	
-	NSUInteger i, count = [allFilters count];
-	for (i = 0; i < count; i++) {
-		FileFilter *aFilter = (FileFilter*)[allFilters objectAtIndex:i];
-		[aFilter stopSearch];
-	}
+    NSLog(@"voiding all queries");
+    
+    NSArray *allFilters = [fileFilters_ allValues];
+    
+    NSUInteger i, count = [allFilters count];
+    for (i = 0; i < count; i++) {
+        FileFilter *aFilter = (FileFilter*)[allFilters objectAtIndex:i];
+        [aFilter stopSearch];
+    }
 }
 
 
@@ -75,16 +75,16 @@
     if ([components count] < 2) return nil;
     
     FileFilter *theFilter = [fileFilters_ objectForKey:[components objectAtIndex:1]];
-	// path has suffix @"\r" if MacFUSE asks for the Icon -> we do not want to start 
-	// the search in this case.
-	if (theFilter && ![path hasSuffix:@"\r"] && startSearch) {
-		[theFilter performSelectorOnMainThread:@selector(resetTimer) withObject:nil waitUntilDone:NO];
-		if (![theFilter didStartSearch]) {
-			// somehow the search has to be started on the main thread
-			// This might be due to the NSNotificationCenter or the MDQuery.
-			[theFilter performSelectorOnMainThread:@selector(startSearch) withObject:nil waitUntilDone:NO];
-		}
-	}
+    // path has suffix @"\r" if MacFUSE asks for the Icon -> we do not want to start 
+    // the search in this case.
+    if (theFilter && ![path hasSuffix:@"\r"] && startSearch) {
+        [theFilter performSelectorOnMainThread:@selector(resetTimer) withObject:nil waitUntilDone:NO];
+        if (![theFilter didStartSearch]) {
+            // somehow the search has to be started on the main thread
+            // This might be due to the NSNotificationCenter or the MDQuery.
+            [theFilter performSelectorOnMainThread:@selector(startSearch) withObject:nil waitUntilDone:NO];
+        }
+    }
     return theFilter;
 }
 
@@ -95,8 +95,8 @@
 
 -(void)setupFilters;
 {
-	[CannedSavedSearchFilter setupFiltersWithFilterManager:self];
-	[UserSavedSearchFilter setupFiltersWithFilterManager:self];
+    [CannedSavedSearchFilter setupFiltersWithFilterManager:self];
+    [UserSavedSearchFilter setupFiltersWithFilterManager:self];
 }
 
 

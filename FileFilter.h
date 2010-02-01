@@ -30,15 +30,15 @@
 
 @interface FileFilter : NSObject {
     NSMutableDictionary *pathContainer_;
-	MDQueryRef query_;    
+    MDQueryRef query_;    
     NSMutableArray *droppedPathComponents_;
     
-	NSString *filterName_;
-	NSDictionary *savedSearch_;
+    NSString *filterName_;
+    NSDictionary *savedSearch_;
 
     BOOL didStartSearch_;
-	
-	NSTimer *queryStopTimer_;
+    
+    NSTimer *queryStopTimer_;
 }
 
 + (void)setupFiltersWithFilterManager:(FilterManager*)theManager;

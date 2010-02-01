@@ -85,31 +85,31 @@
     
     // the keys of the fileFilters_ dictionary are the top-level search folders...
     if ([components count] == 1) {
-		NSArray *topLevelDirs = [filterManager_ topLevelDirectories];
-		return topLevelDirs;
-	}
+        NSArray *topLevelDirs = [filterManager_ topLevelDirectories];
+        return topLevelDirs;
+    }
 
     FileFilter *subFilter = [filterManager_ fileFilterForPath:path shouldStartSearch:YES];
-	if (subFilter == nil) {
-		// happens if asked for e.g. ".DS_Store" -> just ignore it
+    if (subFilter == nil) {
+        // happens if asked for e.g. ".DS_Store" -> just ignore it
         *error = [NSError errorWithPOSIXCode:ENOENT];
         return nil;
     }
 
-	// default case: path points to an item in the "smart folder"
+    // default case: path points to an item in the "smart folder"
     return [subFilter contentsOfDirectoryAtPath:path error:error];
 }
 
 -(NSDictionary *)attributesOfItemAtPath:(NSString *)path userData:(id)userData error:(NSError **)error 
 {
     NSArray *components = [path pathComponents];    
-	BOOL isTopLevelDir = ([components count] == 2);
-	
-	if ([components count] == 1) return nil;		// this is root
+    BOOL isTopLevelDir = ([components count] == 2);
+    
+    if ([components count] == 1) return nil;        // this is root
 
     FileFilter *subFilter = [filterManager_ fileFilterForPath:path shouldStartSearch:!isTopLevelDir];
     if (subFilter == nil) {
-		// happens if asked for e.g. ".DS_Store" -> just ignore it
+        // happens if asked for e.g. ".DS_Store" -> just ignore it
         *error = [NSError errorWithPOSIXCode:ENOENT];
         return nil;
     }
@@ -123,9 +123,9 @@
                 [NSDate date], NSFileModificationDate,
                 NSFileTypeDirectory, NSFileType,
                 nil];
-	}
+    }
 
-	// default case: path points to an item in the "smart folder"
+    // default case: path points to an item in the "smart folder"
     return [subFilter attributesOfItemAtPath:path userData:userData error:error];
 }
 
@@ -147,27 +147,27 @@
 -(NSDictionary *)finderAttributesAtPath:(NSString *)path error:(NSError **)error;
 {
     NSArray *components = [path pathComponents];    
-	BOOL isTopLevelDir = ([components count] == 2);
+    BOOL isTopLevelDir = ([components count] == 2);
 
     if (isTopLevelDir && ([filterManager_ fileFilterForPath:path shouldStartSearch:NO] != nil)) {
-		NSNumber* finderFlags = [NSNumber numberWithLong:kHasCustomIcon];
-		return [NSDictionary dictionaryWithObject:finderFlags forKey:kGMUserFileSystemFinderFlagsKey];
-	}
-	
-	return nil;
+        NSNumber* finderFlags = [NSNumber numberWithLong:kHasCustomIcon];
+        return [NSDictionary dictionaryWithObject:finderFlags forKey:kGMUserFileSystemFinderFlagsKey];
+    }
+    
+    return nil;
 }
 
 -(NSDictionary *)resourceAttributesAtPath:(NSString *)path error:(NSError **)error;
 {
     NSArray *components = [path pathComponents];    
-	BOOL isTopLevelDir = ([components count] == 2);
+    BOOL isTopLevelDir = ([components count] == 2);
 
     if (isTopLevelDir && ([filterManager_ fileFilterForPath:path shouldStartSearch:NO] != nil)) {
-		NSString *file = [[NSBundle mainBundle] pathForResource:@"SmartFolder" ofType:@"icns"];
-		return [NSDictionary dictionaryWithObject:[NSData dataWithContentsOfFile:file] forKey:kGMUserFileSystemCustomIconDataKey];
-	}
-	
-	return nil;
+        NSString *file = [[NSBundle mainBundle] pathForResource:@"SmartFolder" ofType:@"icns"];
+        return [NSDictionary dictionaryWithObject:[NSData dataWithContentsOfFile:file] forKey:kGMUserFileSystemCustomIconDataKey];
+    }
+    
+    return nil;
 }
 
 @end

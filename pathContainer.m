@@ -73,18 +73,18 @@ void addPathsToDir_(NSMutableArray *pathArray, NSMutableDictionary *dir)
 void removePathFromDir_(NSMutableArray *pathArray, NSMutableDictionary *dir)
 {
     if ([pathArray count] == 0) return;
-	
+    
     NSString *path = [pathArray objectAtIndex:0]; [pathArray removeObjectAtIndex:0];
     
     NSMutableDictionary *subDir = [dir objectForKey:path];
     if (subDir != nil) {
-		removePathFromDir_(pathArray, subDir);
-		if ([[subDir allKeys] count] == 0) {
-			// if we deleted the subdir completely also delete it from this
-			// directorys key list
-			[dir removeObjectForKey:path];
-		}
-	} // else: do nothing. We do not have to delete a directory we cannot find!
+        removePathFromDir_(pathArray, subDir);
+        if ([[subDir allKeys] count] == 0) {
+            // if we deleted the subdir completely also delete it from this
+            // directorys key list
+            [dir removeObjectForKey:path];
+        }
+    } // else: do nothing. We do not have to delete a directory we cannot find!
 }
 
 NSMutableDictionary *makeDir(NSMutableArray *pathArray)
